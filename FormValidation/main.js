@@ -52,7 +52,7 @@ Validator.isRequired = function (selector) {
     selector: selector,
     test: function (value) {
       // hàm kiểm tra đã nhập input đúng chưa
-      return value.trim() ? undefined : "vui lòng nhập";
+      return value.trim() ? undefined : "Mục này là bắt buộc nhập";
     },
   };
 };
@@ -70,10 +70,20 @@ Validator.isEmail = function (selector) {
   };
 };
 
+Validator.minLength = function (selector, min) {
+  return {
+    selector: selector,
+    test: function (value) {
+      // hàm kiểm tra đã nhập input đúng chưa
+      return value.length >= min ? undefined : "vui lòng nhập tối thiểu 6 kí tự";
+    },
+  };
+};
+
 
 
 Validator({
   from: "#form-1", // id form
   errorSelector: '.form-message',
-  rules: [Validator.isRequired("#fullname"), Validator.isEmail("#email")], // truyền funtion vào Validator.rules
+  rules: [Validator.isRequired("#fullname"), Validator.isEmail("#email"),Validator.minLength('#password',6)], // truyền funtion vào Validator.rules
 });
