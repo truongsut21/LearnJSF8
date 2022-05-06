@@ -50,48 +50,48 @@ function Validator(option) {
  * 2. khi hợp lệ => trả ra undefined
  */
 // xử lý form
-Validator.isRequired = function (selector) {
+Validator.isRequired = function (selector,mess) {
   return {
     selector: selector,
     test: function (value) {
       // hàm kiểm tra đã nhập input đúng chưa
-      return value.trim() ? undefined : "Mục này là bắt buộc nhập";
+      return value.trim() ? undefined : mess ||"Mục này là bắt buộc nhập";
     },
   };
 };
 
 // xử lý form email
-Validator.isEmail = function (selector) {
+Validator.isEmail = function (selector,mess) {
   return {
     selector: selector,
     test: function (value) {
       // hàm kiểm tra đã nhập input đúng chưa
       let regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-      return regex.test(value) ? undefined : "vui lòng nhập đúng email"; // test ở đây là method
+      return regex.test(value) ? undefined : mess ||"vui lòng nhập đúng email"; // test ở đây là method
     },
   };
 };
 
-Validator.minLength = function (selector, min) {
+Validator.minLength = function (selector, min,mess) {
   return {
     selector: selector,
     test: function (value) {
       // hàm kiểm tra đã nhập input đúng chưa
       return value.length >= min
         ? undefined
-        : "vui lòng nhập tối thiểu 6 kí tự";
+        : mess ||"vui lòng nhập tối thiểu 6 kí tự";
     },
   };
 };
 
-Validator.isConfirmed = function (selector, getCofirmValue) {
+Validator.isConfirmed = function (selector, getCofirmValue, mess) {
   return {
     selector: selector,
     test: function (value) {
       return value === getCofirmValue()
         ? undefined
-        : "gia trị nhập vào không chính xác";
+        : mess || "gia trị nhập vào không chính xác";
     },
   };
 };
@@ -100,11 +100,11 @@ Validator({
   from: "#form-1", // id form
   errorSelector: ".form-message",
   rules: [
-    Validator.isRequired("#fullname"),
-    Validator.isEmail("#email"),
-    Validator.minLength("#password", 6),
+    Validator.isRequired("#fullname",'Vui lòng nhập tên'),
+    Validator.isEmail("#email",'vui lòng nhập đúng mail'),
+    Validator.minLength("#password", 6,'vui lòng nhập mật khẩu dài hơn 6 kí tự'),
     Validator.isConfirmed("#password_confirmation", function () {
       return $("#password").value;
-    }),
+    }, 'Mật khẩu nhập lại không chính xác'),
   ], // truyền funtion vào Validator.rules
 });
