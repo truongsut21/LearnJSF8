@@ -1,12 +1,14 @@
-var $ = document.querySelector.bind();
-var $$ = document.querySelectorAll.bind();
+const $ = document.querySelector.bind(document);
+const $$ = document.querySelectorAll.bind(document);
 // đối tượng validation
 function Validator(option) {
   function validate(inputElement, rule) {
     // thêm event onblur (bỏ chuột ra ngoài vùng đã trọn) vào selector
     // nếu có lỗi trả về string / không có lỗi => undefined
     let errorMess = rule.test(inputElement.value); // truyền tham số vào function test
-    let MessElement = inputElement.parentElement.querySelector(option.errorSelector); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
+    let MessElement = inputElement.parentElement.querySelector(
+      option.errorSelector
+    ); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
     if (errorMess) {
       // gán mess vào HTML
       MessElement.innerHTML = errorMess;
@@ -33,8 +35,9 @@ function Validator(option) {
 
       // xử lý trường hợp blur vào input
       inputElement.oninput = function () {
-        inputElement.parentElement.querySelector(option.errorSelector).innerHTML =
-          ""; // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
+        inputElement.parentElement.querySelector(
+          option.errorSelector
+        ).innerHTML = ""; // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
 
         inputElement.parentElement.classList.remove("invalid"); // remove css
       };
@@ -75,15 +78,33 @@ Validator.minLength = function (selector, min) {
     selector: selector,
     test: function (value) {
       // hàm kiểm tra đã nhập input đúng chưa
-      return value.length >= min ? undefined : "vui lòng nhập tối thiểu 6 kí tự";
+      return value.length >= min
+        ? undefined
+        : "vui lòng nhập tối thiểu 6 kí tự";
     },
   };
 };
 
-
+Validator.isConfirmed = function (selector, getCofirmValue) {
+  return {
+    selector: selector,
+    test: function (value) {
+      return value === getCofirmValue()
+        ? undefined
+        : "gia trị nhập vào không chính xác";
+    },
+  };
+};
 
 Validator({
   from: "#form-1", // id form
-  errorSelector: '.form-message',
-  rules: [Validator.isRequired("#fullname"), Validator.isEmail("#email"),Validator.minLength('#password',6)], // truyền funtion vào Validator.rules
+  errorSelector: ".form-message",
+  rules: [
+    Validator.isRequired("#fullname"),
+    Validator.isEmail("#email"),
+    Validator.minLength("#password", 6),
+    Validator.isConfirmed("#password_confirmation", function () {
+      return $("#password").value;
+    }),
+  ], // truyền funtion vào Validator.rules
 });
