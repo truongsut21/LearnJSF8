@@ -2,6 +2,12 @@ const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 // đối tượng validation
 function Validator(option) {
+  function getErorrElement(inputElement, selector) {
+    const elementParent = inputElement.closest(option.formGroupSelector); // lấy thẻ chả from group
+    const errorElement = elementParent.querySelector(option.errorSelector); // từ element cha lấy con
+    return errorElement;
+  }
+
   var selectorRules = {}; // mảng chứa các function test của các các selector input
 
   function validate(inputElement, rule) {
@@ -13,7 +19,6 @@ function Validator(option) {
     ); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
 
     let rules = selectorRules[rule.selector]; // rules là function chứa các function test của các selector input
-    console.log('rules', rules)
 
     // lặp qua từng rule(trong trường hợp 1 seclecttor có nhiều function test) và kiểm tra
     // nếu có lỗi thì dừng việc kiểm tra
@@ -68,7 +73,8 @@ function Validator(option) {
             values,
             input
           ) {
-            return (values[input.name] = input.value) && values;
+            values[input.name] = input.value;
+            return values;
           },
           {});
 
@@ -79,7 +85,6 @@ function Validator(option) {
     };
 
     option.rules.forEach((rule) => {
-
       // ban đầu sẽ tạo mảng nếu phần tử đó đã là mảng thì dùng push để thêm vào mảng
       if (Array.isArray(selectorRules[rule.selector])) {
         selectorRules[rule.selector].push(rule.test);
@@ -162,6 +167,7 @@ Validator.isConfirmed = function (selector, getCofirmValue, mess) {
 
 Validator({
   from: "#form-1", // id form
+  formGroupSelector: "form-group",
   errorSelector: ".form-message",
   rules: [
     Validator.isRequired("#fullname", "Vui lòng nhập tênF"),
