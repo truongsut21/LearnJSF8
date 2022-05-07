@@ -2,7 +2,7 @@ const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 // đối tượng validation
 function Validator(option) {
-  var selectorRules = {};
+  var selectorRules = {}; // mảng chứa các function test của các các selector input
 
   function validate(inputElement, rule) {
     // thêm event onblur (bỏ chuột ra ngoài vùng đã trọn) vào selector
@@ -12,12 +12,13 @@ function Validator(option) {
       option.errorSelector
     ); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
 
-    let rules = selectorRules[rule.selector];
+    let rules = selectorRules[rule.selector]; // rules là function chứa các function test của các selector input
+    console.log('rules', rules)
 
-    // lặp qua từng rule và kiểm tra
+    // lặp qua từng rule(trong trường hợp 1 seclecttor có nhiều function test) và kiểm tra
     // nếu có lỗi thì dừng việc kiểm tra
     for (var i = 0; i < rules.length; ++i) {
-      errorMess = rules[i](inputElement.value);
+      errorMess = rules[i](inputElement.value); // gọi function test theo mảng và truyền giá trị value nhập vào
       if (errorMess) break;
     }
 
@@ -78,6 +79,8 @@ function Validator(option) {
     };
 
     option.rules.forEach((rule) => {
+
+      // ban đầu sẽ tạo mảng nếu phần tử đó đã là mảng thì dùng push để thêm vào mảng
       if (Array.isArray(selectorRules[rule.selector])) {
         selectorRules[rule.selector].push(rule.test);
       } else {
