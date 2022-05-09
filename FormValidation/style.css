@@ -92,6 +92,10 @@ html {
   padding: 5px;
 }
 
+#province {
+  height: 30px;
+}
+
 .radio-input {
   width: 17px;
 }
