@@ -18,7 +18,7 @@ function Validator(option) {
 
     // trường hợp có nhiều test trong 1 selector
     let rules = selectorRules[rule.selector]; // rules là function chứa các function test của các selector input
-    
+
     // lặp qua từng rule(trong trường hợp 1 seclecttor có nhiều function test) và kiểm tra
     // nếu có lỗi thì dừng việc kiểm tra
     for (var i = 0; i < rules.length; ++i) {
@@ -75,7 +75,6 @@ function Validator(option) {
       });
 
       // nếu option có submit function
-
       if (isFormValid) {
         if (typeof option.onsubmit === "function") {
           let enableInputs = formElement.querySelectorAll(
@@ -96,12 +95,16 @@ function Validator(option) {
                     values[input.name] = [input.value];
                   }
                 }
+
                 break;
               case "radio": // nếu là radio kiểm tra :checked -> gán
                 if (input.matches(":checked")) {
                   values[input.name] = input.value;
                 }
 
+                break;
+              case "file":
+                values[input.name] = input.files;
                 break;
 
               default: // các trường hợp điền
@@ -224,6 +227,7 @@ Validator({
       "Mật khẩu nhập lại không chính xácF"
     ),
     Validator.isRequired("#province", "bạn chưa chọn mục này"),
+    Validator.isRequired("#avata"),
     Validator.isRequired('input[name="gender"]', "bạn chưa chọn mục này"),
     Validator.isRequired('input[name="law"]', "bạn chưa chọn mục này"),
   ], // truyền funtion vào Validator.rules
