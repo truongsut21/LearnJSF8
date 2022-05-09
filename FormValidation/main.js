@@ -14,9 +14,7 @@ function Validator(option) {
     // thêm event onblur (bỏ chuột ra ngoài vùng đã trọn) vào selector
     // nếu có lỗi trả về string / không có lỗi => undefined
     let errorMess; //= rule.test(inputElement.value); // truyền tham số vào function test
-    let MessElement = inputElement.parentElement.querySelector(
-      option.errorSelector
-    ); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
+    let MessElement = getErorrElement(inputElement); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
 
     let rules = selectorRules[rule.selector]; // rules là function chứa các function test của các selector input
 
@@ -104,11 +102,10 @@ function Validator(option) {
 
       // xử lý trường hợp blur vào input
       inputElement.oninput = function () {
-        inputElement.parentElement.querySelector(
-          option.errorSelector
-        ).innerHTML = ""; // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
-
-        inputElement.parentElement.classList.remove("invalid"); // remove css
+        getErorrElement(inputElement).innerHTML = ""; // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
+        inputElement
+          .closest(option.formGroupSelector)
+          .classList.remove("invalid"); // remove css
       };
     });
   }
@@ -167,7 +164,7 @@ Validator.isConfirmed = function (selector, getCofirmValue, mess) {
 
 Validator({
   from: "#form-1", // id form
-  formGroupSelector: "form-group",
+  formGroupSelector: ".form-group",
   errorSelector: ".form-message",
   rules: [
     Validator.isRequired("#fullname", "Vui lòng nhập tênF"),
@@ -184,6 +181,8 @@ Validator({
       },
       "Mật khẩu nhập lại không chính xácF"
     ),
+    Validator.isRequired('input[name="gender"]')
+
   ], // truyền funtion vào Validator.rules
 
   onsubmit: function (data) {
