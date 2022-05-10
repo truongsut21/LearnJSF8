@@ -14,26 +14,35 @@ function Validator(option) {
     // thêm event onblur (bỏ chuột ra ngoài vùng đã trọn) vào selector
     // nếu có lỗi trả về string / không có lỗi => undefined
     let errorMess; //= rule.test(inputElement.value); // truyền tham số vào function test
-    let MessElement = inputElement.parentElement.querySelector(
-      option.errorSelector
-    ); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
+    let MessElement = getErorrElement(inputElement); // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
 
+    // trường hợp có nhiều test trong 1 selector
     let rules = selectorRules[rule.selector]; // rules là function chứa các function test của các selector input
 
     // lặp qua từng rule(trong trường hợp 1 seclecttor có nhiều function test) và kiểm tra
     // nếu có lỗi thì dừng việc kiểm tra
     for (var i = 0; i < rules.length; ++i) {
-      errorMess = rules[i](inputElement.value); // gọi function test theo mảng và truyền giá trị value nhập vào
+      switch (inputElement.type) {
+        case "radio":
+        case "checkbox":
+          // funtion test
+          errorMess = rules[i](
+            formElement.querySelector(rule.selector + ":checked") // gọi function test theo mảng và truyền giá trị đã checked vào
+          );
+          break;
+        default:
+          errorMess = rules[i](inputElement.value); // gọi function test theo mảng và truyền giá trị value nhập vào
+      }
       if (errorMess) break;
     }
 
     if (errorMess) {
       // gán mess vào HTML
       MessElement.innerHTML = errorMess;
-      inputElement.parentElement.classList.add("invalid"); // add css
+      inputElement.closest(".form-group").classList.add("invalid"); // add css
     } else {
       MessElement.innerHTML = "";
-      inputElement.parentElement.classList.remove("invalid"); // remove css
+      inputElement.closest(".form-group").classList.remove("invalid"); // remove css
     }
 
     return !errorMess; // có lỗi sẽ trả về flase
@@ -51,17 +60,21 @@ function Validator(option) {
 
       option.rules.forEach((rule) => {
         // lặp qua từng phần tử và kiểm tra
-        let inputElement = formElement.querySelector(rule.selector); //rule.selector id của form được truyền vào
-        let isValid = validate(inputElement, rule); // function kiểm tra nếu có lỗi trả về false
+        let inputElements = Array.from(
+          formElement.querySelectorAll(rule.selector)
+        ); //rule.selector id của form được truyền vào
 
-        if (!isValid) {
-          // neu có lỗi sẽ app thành true và ép isFormValid = false
-          isFormValid = false;
-        }
+        inputElements.forEach((inputElement) => {
+          let isValid = validate(inputElement, rule); // function kiểm tra nếu có lỗi trả về false
+
+          if (!isValid) {
+            // neu có lỗi sẽ app thành true và ép isFormValid = false
+            isFormValid = false;
+          }
+        });
       });
 
       // nếu option có submit function
-
       if (isFormValid) {
         if (typeof option.onsubmit === "function") {
           let enableInputs = formElement.querySelectorAll(
@@ -73,12 +86,36 @@ function Validator(option) {
             values,
             input
           ) {
-            values[input.name] = input.value;
+            switch (input.type) {
+              case "checkbox": // nếu là checkbox kiểm tra :checked tạo mảng -> thêm vào mảng
+                if (input.matches(":checked")) {
+                  if (Array.isArray(values[input.name])) {
+                    values[input.name].push(input.value);
+                  } else {
+                    values[input.name] = [input.value];
+                  }
+                }
+
+                break;
+              case "radio": // nếu là radio kiểm tra :checked -> gán
+                if (input.matches(":checked")) {
+                  values[input.name] = input.value;
+                }
+
+                break;
+              case "file":
+                values[input.name] = input.files;
+                break;
+
+              default: // các trường hợp điền
+                values[input.name] = input.value;
+            }
+
             return values;
           },
           {});
 
-          option.onsubmit(formValues);
+          option.onsubmit(formValues); // sự kiện submit
         }
       } else {
       }
@@ -93,23 +130,27 @@ function Validator(option) {
         selectorRules[rule.selector] = [rule.test];
       }
 
-      let inputElement = formElement.querySelector(rule.selector); //rule.selector id của form được truyền vào
+      let inputElements = Array.from(
+        formElement.querySelectorAll(rule.selector)
+      ); //rule.selector id của form được truyền vào
+
+      inputElements.forEach((inputElement) => {
+        if (inputElement) {
+          inputElement.onblur = function () {
+            validate(inputElement, rule);
+          };
+        }
+
+        // xử lý trường hợp blur vào input
+        inputElement.oninput = function () {
+          getErorrElement(inputElement).innerHTML = ""; // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
+          inputElement
+            .closest(option.formGroupSelector)
+            .classList.remove("invalid"); // remove css
+        };
+      });
 
       // xử lý sự kiện blur ra khỏi input
-      if (inputElement) {
-        inputElement.onblur = function () {
-          validate(inputElement, rule);
-        };
-      }
-
-      // xử lý trường hợp blur vào input
-      inputElement.oninput = function () {
-        inputElement.parentElement.querySelector(
-          option.errorSelector
-        ).innerHTML = ""; // lấy thẻ cha của thẻ input đã trọn rồi chọn thẻ mess
-
-        inputElement.parentElement.classList.remove("invalid"); // remove css
-      };
     });
   }
 }
@@ -124,7 +165,7 @@ Validator.isRequired = function (selector, mess) {
     selector: selector,
     test: function (value) {
       // hàm kiểm tra đã nhập input đúng chưa
-      return value.trim() ? undefined : mess || "Mục này là bắt buộc nhập";
+      return value ? undefined : mess || "Mục này là bắt buộc nhập";
     },
   };
 };
@@ -167,10 +208,11 @@ Validator.isConfirmed = function (selector, getCofirmValue, mess) {
 
 Validator({
   from: "#form-1", // id form
-  formGroupSelector: "form-group",
+  formGroupSelector: ".form-group",
   errorSelector: ".form-message",
   rules: [
     Validator.isRequired("#fullname", "Vui lòng nhập tênF"),
+    Validator.isRequired("#email"),
     Validator.isEmail("#email", "vui lòng nhập đúng mailF"),
     Validator.minLength(
       "#password",
@@ -184,6 +226,10 @@ Validator({
       },
       "Mật khẩu nhập lại không chính xácF"
     ),
+    Validator.isRequired("#province", "bạn chưa chọn mục này"),
+    Validator.isRequired("#avata"),
+    Validator.isRequired('input[name="gender"]', "bạn chưa chọn mục này"),
+    Validator.isRequired('input[name="law"]', "bạn chưa chọn mục này"),
   ], // truyền funtion vào Validator.rules
 
   onsubmit: function (data) {
